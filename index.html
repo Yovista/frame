@@ -4,144 +4,118 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta property="frame:allowed_origins" content="*">
-    <meta property="frame:name" content="Top Selling NFT Today">
-    <title>Top Selling NFT Today</title>
+    <meta property="frame:name" content="Quiz App">
+    <title>Quiz App</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        .container {
+            max-width: 600px;
+            margin: 20px auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h1, h2 {
+            text-align: center;
+        }
+        #question {
+            margin-bottom: 20px;
+        }
+        #choices {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .choice {
+            background-color: #f0f0f0;
+            padding: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .choice:hover {
+            background-color: #e0e0e0;
+        }
+        #result {
+            text-align: center;
+            margin-top: 20px;
+        }
+    </style>
 </head>
 <body>
-    <div id="topNFTContainer" frame:name="Top NFT Container">
-        <img id="topNFTImage" frame:name="Top NFT Image" alt="Top NFT Image">
-        <canvas id="drawingCanvas" frame:name="Drawing Canvas"></canvas>
-        <input type="color" id="colorPicker" frame:name="Color Picker" value="#000000">
-        <input type="range" id="penSizeInput" frame:name="Pen Size Input" min="1" max="20" value="5">
-        <button id="undoButton" frame:name="Undo Button">Undo</button>
+    <div class="container" frame:name="Quiz Container">
+        <h1>Quiz App</h1>
+        <div id="question" frame:name="Question">Loading question...</div>
+        <div id="choices" frame:name="Choices">Loading choices...</div>
+        <div id="result" frame:name="Result"></div>
     </div>
+
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const topNFTContainer = document.getElementById('topNFTContainer');
-            const topNFTImage = document.getElementById('topNFTImage');
-            const drawingCanvas = document.getElementById('drawingCanvas');
-            const context = drawingCanvas.getContext('2d');
-            const colorPicker = document.getElementById('colorPicker');
-            const penSizeInput = document.getElementById('penSizeInput');
-            const undoButton = document.getElementById('undoButton');
-
-            let isDrawing = false;
-            let drawingStack = [];
-
-            // Set canvas size
-            function setCanvasSize() {
-                drawingCanvas.width = topNFTContainer.offsetWidth;
-                drawingCanvas.height = topNFTContainer.offsetHeight;
+        const quizData = [
+            {
+                question: 'What is the capital of France?',
+                choices: ['London', 'Paris', 'Berlin', 'Madrid'],
+                answer: 'Paris'
+            },
+            {
+                question: 'What is the largest planet in our solar system?',
+                choices: ['Earth', 'Jupiter', 'Mars', 'Saturn'],
+                answer: 'Jupiter'
+            },
+            {
+                question: 'Who wrote "Romeo and Juliet"?',
+                choices: ['William Shakespeare', 'Jane Austen', 'Leo Tolstoy', 'Charles Dickens'],
+                answer: 'William Shakespeare'
             }
+        ];
 
-            // Function to set the image source and display it
-            const setImage = (imageUrl) => {
-                topNFTImage.src = imageUrl;
-                topNFTImage.style.display = 'block';
-            };
+        const questionElement = document.getElementById('question');
+        const choicesElement = document.getElementById('choices');
+        const resultElement = document.getElementById('result');
+        
+        let currentQuestionIndex = 0;
 
-            // Function to handle errors
-            const handleError = (error) => {
-                console.error('Error:', error);
-            };
-
-            // Drawing functionality
-            drawingCanvas.addEventListener('mousedown', (e) => {
-                isDrawing = true;
-                context.beginPath();
-                context.moveTo(e.clientX - topNFTContainer.getBoundingClientRect().left, e.clientY - topNFTContainer.getBoundingClientRect().top);
+        function displayQuestion() {
+            const currentQuestion = quizData[currentQuestionIndex];
+            questionElement.textContent = currentQuestion.question;
+            choicesElement.innerHTML = '';
+            currentQuestion.choices.forEach(choice => {
+                const choiceElement = document.createElement('div');
+                choiceElement.classList.add('choice');
+                choiceElement.textContent = choice;
+                choiceElement.addEventListener('click', () => checkAnswer(choice));
+                choicesElement.appendChild(choiceElement);
             });
+        }
 
-            drawingCanvas.addEventListener('mousemove', (e) => {
-                if (!isDrawing) return;
-
-                context.lineWidth = penSizeInput.value;
-                context.lineCap = 'round';
-                context.strokeStyle = colorPicker.value;
-
-                context.lineTo(e.clientX - topNFTContainer.getBoundingClientRect().left, e.clientY - topNFTContainer.getBoundingClientRect().top);
-                context.stroke();
-            });
-
-            drawingCanvas.addEventListener('mouseup', () => {
-                if (isDrawing) {
-                    drawingStack.push(drawingCanvas.toDataURL()); // Save the current state to the stack
-                }
-                isDrawing = false;
-                context.beginPath();
-            });
-
-            // Undo functionality
-            undoButton.addEventListener('click', () => {
-                if (drawingStack.length > 0) {
-                    drawingStack.pop(); // Remove the last state from the stack
-                    redrawCanvas();
-                }
-            });
-
-            // Redraw canvas based on the stack
-            function redrawCanvas() {
-                context.clearRect(0, 0, drawingCanvas.width, drawingCanvas.height);
-
-                const img = new Image();
-                img.src = drawingStack[drawingStack.length - 1];
-
-                img.onload = () => {
-                    context.drawImage(img, 0, 0, drawingCanvas.width, drawingCanvas.height);
-                };
+        function checkAnswer(selectedChoice) {
+            const currentQuestion = quizData[currentQuestionIndex];
+            if (selectedChoice === currentQuestion.answer) {
+                resultElement.textContent = 'Correct!';
+            } else {
+                resultElement.textContent = 'Incorrect!';
             }
+            setTimeout(nextQuestion, 1000);
+        }
 
-            fetch('https://api.dune.com/api/v1/query/3246352/results?api_key=kl4ugMFJg51rRCUjHbGFCyBPUZmzlgDa')
-                .then(response => response.json())
-                .then(data => {
-                    console.log('Dune Analytics Data:', data);
-                    // Check the structure of the response
-                    const nfts = data.result.rows || [];
+        function nextQuestion() {
+            currentQuestionIndex++;
+            if (currentQuestionIndex < quizData.length) {
+                displayQuestion();
+                resultElement.textContent = '';
+            } else {
+                questionElement.textContent = 'Quiz finished!';
+                choicesElement.innerHTML = '';
+                resultElement.textContent = '';
+            }
+        }
 
-                    if (nfts.length === 0) {
-                        console.error('No top NFTs found.');
-                        return;
-                    }
-
-                    // Get the first NFT result
-                    const topNFT = nfts[0];
-
-                    // Fetch asset details from OpenSea API with API key as a header
-                    const openSeaApiUrl = `https://api.opensea.io/api/v2/chain/ethereum/contract/${topNFT.nft_contract_address}/nfts/${topNFT.token_id}/`;
-                    fetch(openSeaApiUrl, {
-                        headers: {
-                            'X-API-KEY': '7cda1a151de7476890ae5cfac65e4fff',
-                        },
-                    })
-                        .then(response => response.json())
-                        .then(openseaData => {
-                            const imageUrl = openseaData.nft.image_url;
-
-                            if (imageUrl) {
-                                // Display the image
-                                setImage(imageUrl);
-                            } else {
-                                console.error('Image URL not found in OpenSea data.');
-                            }
-                        })
-                        .catch(handleError);
-                })
-                .catch(handleError);
-
-            // Adjust the image size when the window is resized
-            window.addEventListener('resize', () => {
-                const imageUrl = topNFTImage.src;
-                if (imageUrl) {
-                    setImage(imageUrl);
-                }
-
-                setCanvasSize();
-                redrawCanvas();
-            });
-
-            // Initialize canvas size
-            setCanvasSize();
-        });
+        displayQuestion();
     </script>
 </body>
 </html>
