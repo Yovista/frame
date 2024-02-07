@@ -1,28 +1,147 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Arweave Web App Embed</title>
-    <!-- FrameKit metadata -->
-    <meta name="fc:frame" content="vNext">
-    <meta name="fc:frame:image" content="https://arweave.net/nQYbipC2KNrDePNHFnt_KCkI3IJ8pX2Cx9ZWdGotzgw">
-    <meta name="fc:frame:button:1" content="Choose Their Fate">
-    <meta name="fc:frame:post_url" content="https://faristocracy-frame.vercel.app/api/post?slide=1">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta property="frame:allowed_origins" content="*">
+    <meta property="frame:name" content="Top Selling NFT Today">
+    <title>Top Selling NFT Today</title>
 </head>
 <body>
-    <!-- Frame content -->
-    <div id="frame">
-        <iframe src="https://arweave.net/nQYbipC2KNrDePNHFnt_KCkI3IJ8pX2Cx9ZWdGotzgw" width="100%" height="600px" frameborder="0"></iframe>
+    <div id="topNFTContainer" frame:name="Top NFT Container">
+        <img id="topNFTImage" frame:name="Top NFT Image" alt="Top NFT Image">
+        <canvas id="drawingCanvas" frame:name="Drawing Canvas"></canvas>
+        <input type="color" id="colorPicker" frame:name="Color Picker" value="#000000">
+        <input type="range" id="penSizeInput" frame:name="Pen Size Input" min="1" max="20" value="5">
+        <button id="undoButton" frame:name="Undo Button">Undo</button>
     </div>
-    <!-- Additional script loading -->
-    <script src="https://faristocracy-frame.vercel.app/_next/static/chunks/polyfills-c67a75d1b6f99dc8.js" defer crossorigin></script>
-    <script src="https://faristocracy-frame.vercel.app/_next/static/chunks/webpack-ee7e63bc15b31913.js" defer crossorigin></script>
-    <script src="https://faristocracy-frame.vercel.app/_next/static/chunks/framework-5429a50ba5373c56.js" defer crossorigin></script>
-    <script src="https://faristocracy-frame.vercel.app/_next/static/chunks/main-930135e47dff83e9.js" defer crossorigin></script>
-    <script src="https://faristocracy-frame.vercel.app/_next/static/chunks/pages/_app-b8840b4f8f2fad1f.js" defer crossorigin></script>
-    <script src="https://faristocracy-frame.vercel.app/_next/static/chunks/pages/index-016a53a5b212a55f.js" defer crossorigin></script>
-    <script src="https://faristocracy-frame.vercel.app/_next/static/51hnj2FBt_qAUyFWtCs7G/_buildManifest.js" defer crossorigin></script>
-    <script src="https://faristocracy-frame.vercel.app/_next/static/51hnj2FBt_qAUyFWtCs7G/_ssgManifest.js" defer crossorigin></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const topNFTContainer = document.getElementById('topNFTContainer');
+            const topNFTImage = document.getElementById('topNFTImage');
+            const drawingCanvas = document.getElementById('drawingCanvas');
+            const context = drawingCanvas.getContext('2d');
+            const colorPicker = document.getElementById('colorPicker');
+            const penSizeInput = document.getElementById('penSizeInput');
+            const undoButton = document.getElementById('undoButton');
+
+            let isDrawing = false;
+            let drawingStack = [];
+
+            // Set canvas size
+            function setCanvasSize() {
+                drawingCanvas.width = topNFTContainer.offsetWidth;
+                drawingCanvas.height = topNFTContainer.offsetHeight;
+            }
+
+            // Function to set the image source and display it
+            const setImage = (imageUrl) => {
+                topNFTImage.src = imageUrl;
+                topNFTImage.style.display = 'block';
+            };
+
+            // Function to handle errors
+            const handleError = (error) => {
+                console.error('Error:', error);
+            };
+
+            // Drawing functionality
+            drawingCanvas.addEventListener('mousedown', (e) => {
+                isDrawing = true;
+                context.beginPath();
+                context.moveTo(e.clientX - topNFTContainer.getBoundingClientRect().left, e.clientY - topNFTContainer.getBoundingClientRect().top);
+            });
+
+            drawingCanvas.addEventListener('mousemove', (e) => {
+                if (!isDrawing) return;
+
+                context.lineWidth = penSizeInput.value;
+                context.lineCap = 'round';
+                context.strokeStyle = colorPicker.value;
+
+                context.lineTo(e.clientX - topNFTContainer.getBoundingClientRect().left, e.clientY - topNFTContainer.getBoundingClientRect().top);
+                context.stroke();
+            });
+
+            drawingCanvas.addEventListener('mouseup', () => {
+                if (isDrawing) {
+                    drawingStack.push(drawingCanvas.toDataURL()); // Save the current state to the stack
+                }
+                isDrawing = false;
+                context.beginPath();
+            });
+
+            // Undo functionality
+            undoButton.addEventListener('click', () => {
+                if (drawingStack.length > 0) {
+                    drawingStack.pop(); // Remove the last state from the stack
+                    redrawCanvas();
+                }
+            });
+
+            // Redraw canvas based on the stack
+            function redrawCanvas() {
+                context.clearRect(0, 0, drawingCanvas.width, drawingCanvas.height);
+
+                const img = new Image();
+                img.src = drawingStack[drawingStack.length - 1];
+
+                img.onload = () => {
+                    context.drawImage(img, 0, 0, drawingCanvas.width, drawingCanvas.height);
+                };
+            }
+
+            fetch('https://api.dune.com/api/v1/query/3246352/results?api_key=kl4ugMFJg51rRCUjHbGFCyBPUZmzlgDa')
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Dune Analytics Data:', data);
+                    // Check the structure of the response
+                    const nfts = data.result.rows || [];
+
+                    if (nfts.length === 0) {
+                        console.error('No top NFTs found.');
+                        return;
+                    }
+
+                    // Get the first NFT result
+                    const topNFT = nfts[0];
+
+                    // Fetch asset details from OpenSea API with API key as a header
+                    const openSeaApiUrl = `https://api.opensea.io/api/v2/chain/ethereum/contract/${topNFT.nft_contract_address}/nfts/${topNFT.token_id}/`;
+                    fetch(openSeaApiUrl, {
+                        headers: {
+                            'X-API-KEY': '7cda1a151de7476890ae5cfac65e4fff',
+                        },
+                    })
+                        .then(response => response.json())
+                        .then(openseaData => {
+                            const imageUrl = openseaData.nft.image_url;
+
+                            if (imageUrl) {
+                                // Display the image
+                                setImage(imageUrl);
+                            } else {
+                                console.error('Image URL not found in OpenSea data.');
+                            }
+                        })
+                        .catch(handleError);
+                })
+                .catch(handleError);
+
+            // Adjust the image size when the window is resized
+            window.addEventListener('resize', () => {
+                const imageUrl = topNFTImage.src;
+                if (imageUrl) {
+                    setImage(imageUrl);
+                }
+
+                setCanvasSize();
+                redrawCanvas();
+            });
+
+            // Initialize canvas size
+            setCanvasSize();
+        });
+    </script>
 </body>
 </html>
