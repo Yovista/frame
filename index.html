@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <!-- Frame meta tags -->
   <meta property="fc:frame" content="vNext" />
-  <meta property="fc:frame:image" content="https://example.com/robot_placeholder.jpg" />
   <!-- Button meta tag -->
   <meta property="fc:frame:button:1" content="Generate" />
   <!-- Frame-specific styles -->
@@ -20,11 +19,12 @@
 <body>
   <!-- Frame content goes here -->
   <h1>Generative Art Frame</h1>
+  <button id="generateButton">Generate</button>
   <canvas id="robotCanvas" width="200" height="200"></canvas>
 
   <!-- JavaScript to handle button click and generate art -->
   <script>
-    // Function to generate robot head
+    // Function to generate robot head and update image source
     function generateRobotHead() {
       const canvas = document.getElementById('robotCanvas');
       const ctx = canvas.getContext('2d');
@@ -49,11 +49,17 @@
       ctx.beginPath();
       ctx.arc(90, 100, 20, 0, Math.PI, false);
       ctx.stroke();
+
+      // Update image source with canvas content
+      const imageDataURL = canvas.toDataURL(); // Get canvas content as data URL
+      const imgElement = document.createElement('img'); // Create new image element
+      imgElement.src = imageDataURL; // Set image source to canvas content
+      document.body.appendChild(imgElement); // Append image element to the document
     }
 
     // Event listener for button click
     document.addEventListener('DOMContentLoaded', function() {
-      const generateButton = document.querySelector('meta[property="fc:frame:button:1"]');
+      const generateButton = document.getElementById('generateButton');
       generateButton.addEventListener('click', generateRobotHead);
     });
   </script>
