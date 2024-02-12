@@ -1,26 +1,61 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Frame Web App</title>
-    <!-- Define the Frame meta tags -->
-    <meta property="fc:frame" content="vNext" />
-    <meta property="fc:frame:image" content="https://yovista.github.io/frame/screenshot.jpg" />
-    <meta property="og:image" content="https://yovista.github.io/frame/screenshot.jpg" />
-    <!-- Add any additional meta tags as needed -->
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Frame meta tags -->
+  <meta property="fc:frame" content="vNext" />
+  <meta property="fc:frame:image" content="https://example.com/robot_placeholder.jpg" />
+  <!-- Button meta tag -->
+  <meta property="fc:frame:button:1" content="Generate" />
+  <!-- Frame-specific styles -->
+  <style>
+    #robotCanvas {
+      border: 1px solid #000;
+      margin-top: 20px;
+    }
+  </style>
+  <title>Generative Art Frame</title>
 </head>
 <body>
-    <!-- Your web app content goes here -->
-    <script>
-        window.onload = function() {
-            const frame = document.createElement('iframe');
-            frame.src = 'https://yovista.github.io/frame/';
-            frame.width = '100%';
-            frame.height = '100%';
-            frame.frameBorder = '0';
-            document.body.appendChild(frame);
-        };
-    </script>
+  <!-- Frame content goes here -->
+  <h1>Generative Art Frame</h1>
+  <canvas id="robotCanvas" width="200" height="200"></canvas>
+
+  <!-- JavaScript to handle button click and generate art -->
+  <script>
+    // Function to generate robot head
+    function generateRobotHead() {
+      const canvas = document.getElementById('robotCanvas');
+      const ctx = canvas.getContext('2d');
+
+      // Clear canvas
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Draw robot head
+      const headColor = '#' + Math.floor(Math.random()*16777215).toString(16); // Random color
+      ctx.fillStyle = headColor;
+      ctx.fillRect(50, 50, 100, 100);
+
+      // Draw eyes
+      const eyeColor = '#' + Math.floor(Math.random()*16777215).toString(16); // Random color
+      ctx.fillStyle = eyeColor;
+      ctx.fillRect(65, 65, 20, 20);
+      ctx.fillRect(115, 65, 20, 20);
+
+      // Draw mouth
+      ctx.strokeStyle = "#000";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(90, 100, 20, 0, Math.PI, false);
+      ctx.stroke();
+    }
+
+    // Event listener for button click
+    document.addEventListener('DOMContentLoaded', function() {
+      const generateButton = document.querySelector('meta[property="fc:frame:button:1"]');
+      generateButton.addEventListener('click', generateRobotHead);
+    });
+  </script>
 </body>
 </html>
